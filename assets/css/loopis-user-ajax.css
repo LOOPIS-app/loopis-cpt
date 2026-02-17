@@ -1,0 +1,23 @@
+.loopis-user-results {
+    border: 1px solid #ccc;
+    background: #fff;
+    position: absolute;
+    z-index: 9999;
+    max-height: 200px;
+    overflow-y: auto;
+    width: 60%;
+    display: none;
+}
+
+.loopis-user-item {
+    padding: 6px 10px;
+    cursor: pointer;
+}
+
+.loopis-user-item:hover {
+    background: #f0f0f0;
+}
+
+.loopis-user-search {
+    width: 350px; /* need to find better way to set width */
+}
