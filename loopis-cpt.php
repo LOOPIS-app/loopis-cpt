@@ -1,7 +1,7 @@
 <?php
 /**
 * Plugin Name: LOOPIS CPT
-* Plugin URI:  https://github.com/nissegit/loopis-cpt
+* Plugin URI:  https://github.com/LOOPIS-app/loopis-cpt/
 * Description: Plugin for handling custom post types & related taxonomies
 * Version: 0.1
 * Author: nissegit

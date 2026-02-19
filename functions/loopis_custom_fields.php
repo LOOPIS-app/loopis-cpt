@@ -9,7 +9,7 @@ if (!defined('ABSPATH')) {
     exit; 
 }
 
-// Load scripts and files for the datetime picker 
+// Load scripts and files for the datetime picker + validation (URL)
 
 add_action( 'admin_enqueue_scripts', 'loopis_enqueue_datetime_picker' );
 function loopis_enqueue_datetime_picker( $hook ) {
@@ -60,6 +60,24 @@ function loopis_enqueue_datetime_picker( $hook ) {
         true
     );
 
+    // JS for URL validation
+    wp_enqueue_script(
+        'loopis-form-validate',
+        plugin_dir_url( __FILE__ ) . '../assets/js/loopis-form-validate.js',
+        [],
+        '1.0',
+        true
+    );
+
+    // CSS for URL validation - not used right now
+   wp_enqueue_style(
+        'loopis-form-validate-css',
+        plugin_dir_url( __FILE__ ) . '../assets/css/loopis-form-validate.css',
+        [],
+        '1.0',
+        true,
+   );
+
 }
 
 // Field groups with custom fields
@@ -68,7 +86,7 @@ function loopis_get_field_groups() {
 
     return [
 
-        // field group: 'support_meta', custom fields: 'priority', 'deadline'
+        // field group: 'support_meta', custom fields: 'title', 'link', 'status', 'invited'
 
         'support_meta' => [
             'title' => 'Support Fields',
@@ -99,7 +117,7 @@ function loopis_get_field_groups() {
             ],
         ],
 
-        // field group: 'post_meta', custom fields: 'subtitle'
+        // field group: 'post_meta', custom fields: 'location', 'custom_location', etc
         // översätt label, engelska
         // allow null, påslaget för alla fält
 
@@ -127,7 +145,7 @@ function loopis_get_field_groups() {
                     'type'  => 'image', // kolla databas test.loopis.app, kan räcka med ID (+ ev utöka med tredje bild)
                     'nullable' => true,
                 ],
-                'participants' => [ // flera deltagare, lägg till så att fler användare kan läggas till
+                'participants' => [
                     'label' => 'Deltagare',
                     'type'  => 'user_ajax',
                     'multiple' => true, // needed for multiple users
@@ -147,7 +165,7 @@ function loopis_get_field_groups() {
                 ],
                 'raffle_date' => [
                     'label' => 'Datum lottning',
-                    'type'  => 'datetime', // datetime is a custom created format
+                    'type'  => 'datetime', // datetime is a custom created format, see the datetime case in the render meta box function
                     'nullable' => true,
                 ],
                 'book_date' => [
@@ -331,9 +349,11 @@ function loopis_render_meta_box( $post, $box ) {
                 break;
 
             case 'url':
-                echo '<input type="url" class="regular-text" 
-                 name="' . esc_attr( $key ) . '" 
-                 value="' . esc_attr( $value ) . '">';
+                echo '<input type="url" class="regular-text loopis-url" 
+                name="' . esc_attr( $key ) . '" 
+                value="' . esc_attr( $value ) . '"
+                placeholder="https://example.com"
+                >';
                 break;
 
             case 'taxonomy':
@@ -366,13 +386,7 @@ function loopis_render_meta_box( $post, $box ) {
 
                 break;
 
-            // pattern="\d{4}-\d{2}-\d{2} \d{2}:\d{2}"
-            // placeholder="YYYY-MM-DD HH:MM"
-            //  title="Format: YYYY-MM-DD HH:MM" - oklart om pattern behövs ... när JS inte fungerar, fungerar inte gutenberg öht
-            //  inputmode="none"
-            //  autocomplete="off"
-
-            case 'datetime': // inputmode, autocomplete = get rid of chrome auto insertion of html5 datetime picker
+            case 'datetime':
                 echo '<input type="text"
                 name="' . esc_attr( $key ) . '"
                 value="' . esc_attr( $value ) . '"
@@ -433,7 +447,29 @@ function loopis_save_fields( $post_id ) {
                     break;
 
                 case 'url':
-                    $value = esc_url_raw( $value );
+                    
+                    // Backend validation
+
+                    $value = trim( $value );
+                    
+                    // Null or nothing is OK
+                    if ( $value === '' ) {
+                        delete_post_meta( $post_id, $key, '' );
+                        return;
+                    }
+                    // Only accept URL:s that starts with https://
+                    if ( ! str_starts_with( $value, 'https://' ) ) {
+                        delete_post_meta( $post_id, $key );
+                        return;
+                    }
+                    
+                    // Validate the URL
+                    if ( ! filter_var( $value, FILTER_VALIDATE_URL ) ) {
+                        delete_post_meta( $post_id, $key );
+                        return;
+                    }
+
+                    update_post_meta( $post_id, $key, esc_url_raw( $value ) );
                     break;
                 
                 case 'user_ajax':
