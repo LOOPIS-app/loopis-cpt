@@ -88,6 +88,7 @@ function loopis_get_field_groups() {
                 'status' => [
                     'label' => 'Status',
                     'type'  => 'taxonomy',
+                    'taxonomy' => 'support_categoryz', // needed for the taxonomy field
                     'nullable' => true,
                 ],
                 'invited' => [
@@ -109,85 +110,85 @@ function loopis_get_field_groups() {
             'post_types' => ['post'],
             'fields' => [
                 'location' => [
-                    'label' => 'Hämtning',
+                    'label' => 'Location',
                     'type'  => 'text',
                     'nullable' => true,
                 ],
                 'custom_location' => [
-                    'label' => 'Hämtning (custom)',
+                    'label' => 'Location (custom)',
                     'type'  => 'text',
                     'nullable' => true,
                 ],
                 'locker_number' => [
-                    'label' => 'Skåpsnummer',
+                    'label' => 'Locker number',
                     'type'  => 'number',
                     'nullable' => true,
                 ],
                 'image_2' => [
-                    'label' => 'Extra bild?',
+                    'label' => 'Extra image?',
                     'type'  => 'image', // kolla databas test.loopis.app, kan räcka med ID (+ ev utöka med tredje bild)
                     'nullable' => true,
                 ],
                 'participants' => [
-                    'label' => 'Deltagare',
+                    'label' => 'Participants',
                     'type'  => 'user_ajax',
                     'multiple' => true, // needed for multiple users
                     'nullable' => true,
                 ],
                 'fetcher' => [
-                    'label' => 'Mottagare',
+                    'label' => 'Fetcher',
                     'type'  => 'user_ajax',
                     'multiple' => false, // needed for single user
                     'nullable' => true,
                 ],
                 'queue' => [
-                    'label' => 'Kö',
+                    'label' => 'Queue',
                     'type'  => 'user_ajax',
                     'multiple' => true, // needed for multiple users
                     'nullable' => true,
                 ],
                 'raffle_date' => [
-                    'label' => 'Datum lottning',
+                    'label' => 'Raffle date',
                     'type'  => 'datetime', // datetime is a custom created format, see the datetime case in the render meta box function
                     'nullable' => true,
                 ],
                 'book_date' => [
-                    'label' => 'Datum paxning',
+                    'label' => 'Book date',
                     'type'  => 'datetime',
                     'nullable' => true,
                 ],
                 'locker_date' => [
-                    'label' => 'Datum skåp',
+                    'label' => 'Locker date',
                     'type'  => 'datetime',
                     'nullable' => true,
                 ],
                 'fetch_date' => [
-                    'label' => 'Datum hämtning',
+                    'label' => 'Fetch date',
                     'type'  => 'datetime',
                     'nullable' => true,
                 ],
                 'forward_date' => [
-                    'label' => 'Datum forward',
+                    'label' => 'Forward date',
                     'type'  => 'datetime',
                     'nullable' => true,
                 ],
                 'remove_date' => [
-                    'label' => 'Datum borttagen',
+                    'label' => 'Remove date',
                     'type'  => 'datetime',
                     'nullable' => true,
                 ],
                 'pause_date' => [
-                    'label' => 'Datum pausad',
+                    'label' => 'Pause date',
                     'type'  => 'datetime',
                     'nullable' => true,
                 ],
                 'archive_date' => [
-                    'label' => 'Datum arkiverad',
+                    'label' => 'Archive date',
                     'type'  => 'datetime',
                     'nullable' => true,
                 ],
                 'extend_date' => [
-                    'label' => 'Datum förnyad',
+                    'label' => 'Extend date',
                     'type'  => 'datetime',
                     'nullable' => true,
                 ],
@@ -202,12 +203,12 @@ function loopis_get_field_groups() {
                     'nullable' => true,
                 ],
                 'reminder_leave' => [
-                    'label' => 'Påminnelse lämna',
+                    'label' => 'Reminder leave',
                     'type'  => 'number',
                     'nullable' => true,
                 ],
                 'reminder_fetch' => [
-                    'label' => 'Påminnelse hämta',
+                    'label' => 'Reminder fetch',
                     'type'  => 'number',
                     'nullable' => true,
                 ],
@@ -340,6 +341,7 @@ function loopis_render_meta_box( $post, $box ) {
                 break;
 
             case 'taxonomy':
+
                 $taxonomy = $field['taxonomy'];
 
                 if ( ! taxonomy_exists( $taxonomy ) ) {
@@ -352,22 +354,28 @@ function loopis_render_meta_box( $post, $box ) {
                     'hide_empty' => false,
                 ]);
 
-                $selected_terms = wp_get_object_terms( $post->ID, $taxonomy, ['fields' => 'ids'] );
+                $selected_terms = wp_get_object_terms(
+                    $post->ID,
+                    $taxonomy,
+                    ['fields' => 'ids']
+                );
+
                 $selected = $selected_terms[0] ?? '';
 
-                echo '<select name="' . esc_attr( $key ) . '">';
+                echo '<select name="' . esc_attr( $key ) . '" class="loopis-taxonomy-select">';
 
                 echo '<option value="">— Välj —</option>';
 
                 foreach ( $terms as $term ) {
-                    echo '<option value="' . esc_attr( $term->term_id ) . '" ' . selected( $selected, $term->term_id, false ) . '>';
+                    echo '<option value="' . esc_attr( $term->term_id ) . '" ' .
+                        selected( $selected, $term->term_id, false ) . '>';
                     echo esc_html( $term->name );
                     echo '</option>';
                 }
 
                 echo '</select>';
 
-                break;
+            break;
 
             case 'datetime':
                 echo '<input type="text"
@@ -382,7 +390,7 @@ function loopis_render_meta_box( $post, $box ) {
 
             case 'image':
                 echo '<input type="text" name="' . esc_attr( $key ) . '" value="' . esc_attr( $value ) . '" class="regular-text">';
-                echo '<p class="description">Ange bildens media-ID</p>';
+                echo '<p class="description">Input the image media-ID</p>';
                 break;
         }
 
@@ -397,6 +405,8 @@ function loopis_render_meta_box( $post, $box ) {
 add_action( 'save_post', 'loopis_save_fields' );
 
 function loopis_save_fields( $post_id ) {
+error_log('SAVE TRIGGERED FOR POST ' . $post_id);
+error_log("POST[$key] = " . print_r($_POST[$key] ?? 'NOT SET', true));
 
     if ( ! isset( $_POST['loopis_fields_nonce'] ) ) return;
 
@@ -412,6 +422,8 @@ function loopis_save_fields( $post_id ) {
 
             // Check for nullable fields
             $field['nullable'] = $field['nullable'] ?? true;
+            
+            // Meta fields
 
             if ( ! isset( $_POST[ $key ] ) ) {
 
@@ -423,7 +435,7 @@ function loopis_save_fields( $post_id ) {
             }
 
             $value = $_POST[ $key ];
-
+            error_log("POST[$key] = " . print_r($_POST[$key] ?? 'NOT SET2', true));
             switch ( $field['type'] ) {
                 case 'number':
                     $value = floatval( $value );
@@ -463,18 +475,6 @@ function loopis_save_fields( $post_id ) {
                     } else {
                         $val = isset($_POST[$key]) ? intval($_POST[$key]) : '';
                         update_post_meta($post_id, $key, $val);
-                    }
-                    break;
-
-                case 'taxonomy':
-                    $taxonomy = $field['taxonomy'];
-
-                    $term_id = intval( $_POST[ $key ] );
-
-                    if ( $term_id ) {
-                        wp_set_object_terms( $post_id, [ $term_id ], $taxonomy, false );
-                    } else {
-                        wp_set_object_terms( $post_id, [], $taxonomy, false );
                     }
                     break;
                 

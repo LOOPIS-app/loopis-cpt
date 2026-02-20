@@ -9,10 +9,13 @@ if (!defined('ABSPATH')) {
     exit; 
 }
 
+// Require register taxonomies function
+require_once plugin_dir_path( __FILE__ ) . 'loopis_register_tax.php';
+
 function loopis_add_default_terms() {
 
     // Function to add default tags at the right time (before register_activation_hook)
-    loopis_register_tax();
+    register_taxonomies();
 
     $defaults = [
 
@@ -20,23 +23,23 @@ function loopis_add_default_terms() {
         'faq_categoryz' => [
             [
                 'name' => 'Instruktioner',
-                'slug' => 'instruktioner',
+                'slug' => 'instructions',
             ],
             [
                 'name' => 'Medlemskap',
-                'slug' => 'medlemskap',
+                'slug' => 'membership',
             ],
             [
                 'name' => 'LOOPIS.app',
-                'slug' => 'loopis-app',
+                'slug' => 'app',
             ],
             [
                 'name' => 'LOOPIS skåp',
-                'slug' => 'loopis-skap',
+                'slug' => 'locker',
             ],
             [
                 'name' => 'Om föreningen',
-                'slug' => 'om-foreningen',
+                'slug' => 'organisation',
             ],
         ],
 
@@ -105,8 +108,8 @@ function loopis_add_default_terms() {
     }
 }
 
-// add_action('init', 'add_default_terms'); // Denna kan du senare flytta till register_activation_hook
+add_action('init', 'loopis_add_default_terms'); // Denna kan du senare flytta till register_activation_hook
 
-// register_activation_hook( __FILE__, 'add_default_terms' );
+register_activation_hook( __FILE__, 'loopis_add_default_terms' );
 
 ?>

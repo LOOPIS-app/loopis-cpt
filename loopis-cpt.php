@@ -13,11 +13,6 @@ if (!defined('ABSPATH')) {
     exit; 
 }
 
-// Run only in admin area
-/*if (!is_admin()) {
-    return;
-}*/
-
 // Load CPTs
 
 require_once plugin_dir_path( __FILE__ ) . '/functions/loopis_register_cpt.php';
@@ -28,15 +23,11 @@ require_once plugin_dir_path( __FILE__ ) . '/functions/loopis_register_tax.php';
 
 // Load default terms in taxonomies
 
-//require_once plugin_dir_path( __FILE__ ) . '/functions/loopis_default_terms.php';
+require_once plugin_dir_path( __FILE__ ) . '/functions/loopis_default_terms.php';
 
 // Load custom fields
 
-//require_once plugin_dir_path( __FILE__ ) . '/functions/loopis_custom_fields.php';
-
 require_once plugin_dir_path( __FILE__ ) . '/functions/loopis_custom_fields.php';
-
-// require_once plugin_dir_path( __FILE__ ) . '/functions/loopis_custom_field.php';
 
 // Load config
 
@@ -112,5 +103,25 @@ function loopis_user_ajax_search() {
     wp_send_json_success($results);
 } 
 
+// Save function for taxonomy field
+
+function loopis_save_taxonomy_field( $post_id ) {
+
+    if ( defined('DOING_AUTOSAVE') && DOING_AUTOSAVE ) return;
+    if ( wp_is_post_revision( $post_id ) ) return;
+
+    if ( ! isset($_REQUEST['status']) ) return;
+
+    $taxonomy = 'support_categoryz';
+    $term_id  = intval( $_REQUEST['status'] );
+
+    if ( $term_id ) {
+        wp_set_object_terms( $post_id, [ $term_id ], $taxonomy, false );
+    } else {
+        wp_set_object_terms( $post_id, [], $taxonomy, false );
+    }
+
+}
+add_action('save_post', 'loopis_save_taxonomy_field', 20);
 
 ?>

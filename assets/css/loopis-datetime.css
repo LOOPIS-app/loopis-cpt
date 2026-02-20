@@ -1,5 +1,0 @@
-// remove auto injection of html5 datetime picker in chrome
-
-input::-webkit-calendar-picker-indicator {
-    display: none !important;
-}
